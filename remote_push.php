@@ -2,8 +2,14 @@
 include_once "config.php";
 include_once "/lib/sc_envu.php";
 $envu = envu_read("nm0", NM0_ENVU_SIZE, NM0_ENVU_OFFSET);
+if(!($wrp_title = envu_find($envu, "wrp_title")))
+	$wrp_title = "Web Remote Control / Push";
 if(!($wrp_width = envu_find($envu, "wrp_width")))
 	$wrp_width = "400";
+if(!($wrp_but_name = envu_find($envu, "wrp_but_name")))
+	$wrp_but_name = "A,B,C,D,E,F,G,H,I";
+$push_text = explode(",", $wrp_but_name);
+$push_text_len = count($push_text);
 ?>
 <!DOCTYPE html>
 <html>
@@ -11,41 +17,56 @@ if(!($wrp_width = envu_find($envu, "wrp_width")))
 <title>PHPoC Shield - Web Remote Control for Arduino</title>
 <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7">
 <style>
-body { text-align: center; }
+body { font-family: verdana, Helvetica, Arial, sans-serif, gulim; text-align: center; }
 h1 { font-weight: bold; font-size: 25pt; }
 h2 { font-weight: bold; font-size: 15pt; }
-button { font-weight: bold; font-size: 15pt; }
+button { font-weight: bold; font-size: 15pt; } 
+#remote { margin:0 auto; width: <?echo $wrp_width?>px; }
+.circle_button { 
+		display: inline-block; width: 110px; height: 110px; 
+		border-radius: 50%; font-size: 20px; color: white; line-height: 110px;
+		text-align: center; font-weight: bold; background: #eee; margin: 7px;
+}
 </style>
 <script>
-var BOX_WIDTH = <?echo(int)$wrp_width/3?>;
-var BOX_HEIGHT = <?echo(int)$wrp_width/3?>;
-var PUSH_RADIUS = <?echo(int)$wrp_width/7?>;
 var push_info = [];
-var push_text = [ "A", "B", "C", "D", "E", "F", "G", "H", "I" ];
-var push_font = "40px Arial";
+var wrp_but_name = "<?php echo $wrp_but_name;?>";
+var push_text = wrp_but_name.split(",");
+var push_length = push_text.length;
+var push_font = "20px Arial";
 var ws;
+
 function init()
-{
-	var remote = document.getElementById("remote");
-
-	remote.width = BOX_WIDTH * 3;
-	remote.height = BOX_HEIGHT * 3;
-
-	for(var push_id = 0; push_id < 9; push_id++)
+{	
+	if(ws == null)
+	{
+		ws = new WebSocket("ws://<?echo _SERVER("HTTP_HOST")?>/remote_push", "text.phpoc");
+		document.getElementById("ws_state").innerHTML = "CONNECTING";
+		
+		ws.onopen = ws_onopen;
+		ws.onclose = ws_onclose;
+		ws.onmessage = ws_onmessage; 
+	}
+	else
+		ws.close();
+	
+	for(var push_id = 0; push_id < push_length; push_id++)
 	{
 		push_info[push_id] = {state:false, identifier:null, font:push_font, text:push_text[push_id]};
 		update_push(push_id, false);
 	}
 
-	remote.addEventListener("touchstart", mouse_down);
-	remote.addEventListener("touchend", mouse_up);
-	remote.addEventListener("touchmove", mouse_move);
-	//remote.addEventListener("touchout", mouse_move);
+	var remote = document.getElementById("remote");
+	
+	remote.ontouchstart = mouse_down;
+	remote.ontouchend = mouse_up;
+	remote.ontouchcancel = mouse_up;
+	remote.ontouchout = mouse_move;
+	remote.onmousedown = mouse_down;
+	remote.onmouseup = mouse_up;
+	remote.onmouseout = mouse_up; 
+	remote.onmousemove = mouse_move; 
 
-	remote.addEventListener("mousedown", mouse_down);
-	remote.addEventListener("mouseup", mouse_up);
-	remote.addEventListener("mousemove", mouse_move);
-	remote.addEventListener("mouseout", mouse_up);
 }
 function connect_onclick()
 {
@@ -79,7 +100,7 @@ function ws_onopen()
 	document.getElementById("ws_state").innerHTML = "<font color='blue'>CONNECTED</font>";
 	document.getElementById("bt_connect").innerHTML = "Disconnect";
 
-	for(var push_id = 0; push_id < 9; push_id++)
+	for(var push_id = 0; push_id < push_length; push_id++)
 		update_push(push_id, false);
 }
 function ws_onclose()
@@ -92,7 +113,7 @@ function ws_onclose()
 	ws.onmessage = null;
 	ws = null;
 
-	for(var push_id = 0; push_id < 9; push_id++)
+	for(var push_id = 0; push_id < push_length; push_id++)
 		update_push(push_id, false);
 }
 function ws_onmessage(e_msg)
@@ -103,41 +124,25 @@ function ws_onmessage(e_msg)
 }
 function update_push(push_id, state)
 {
-	var remote = document.getElementById("remote");
-	var ctx = remote.getContext("2d");
+	var button = document.getElementById(push_id);
 	var push = push_info[push_id];
-	var cx, cy;
 
 	if(ws && (ws.readyState == 1))
 	{
-		ctx.strokeStyle = "blue";
+		button.style.border = "1px solid blue";
 		if(state)
-			ctx.fillStyle = "blue";
+			button.style.backgroundColor = "blue";
 		else
-			ctx.fillStyle = "skyblue";
+			button.style.backgroundColor = "skyblue";
 	}
 	else
 	{
-		ctx.strokeStyle = "gray";
+		button.style.border = "1px solid gray";
 		if(state)
-			ctx.fillStyle = "gray";
+			button.style.backgroundColor = "gray";
 		else
-			ctx.fillStyle = "silver";
+			button.style.backgroundColor = "silver";
 	}
-
-	cx = BOX_WIDTH * (push_id % 3) + BOX_WIDTH / 2;
-	cy = BOX_HEIGHT * parseInt(push_id / 3) + BOX_HEIGHT / 2;
-
-	ctx.beginPath();
-	ctx.arc(cx, cy, PUSH_RADIUS, 0, 2 * Math.PI);
-	ctx.fill();
-	ctx.stroke();
-
-	ctx.font = push.font;
-	ctx.textAlign = "center";
-	ctx.textBaseline = "middle";
-	ctx.fillStyle = "white";
-	ctx.fillText(push.text, cx, cy);
 
 	push.state = state;
 
@@ -147,52 +152,26 @@ function update_push(push_id, state)
 	if(ws && (ws.readyState == 1))
 	{
 		if(state)
-			ws.send(String.fromCharCode(0x41 + push_id)); // 'A' ~ 'I'
+			ws.send(String.fromCharCode(0x41 + Number(push_id))); // 'A' ~ 'I'
 		else
-			ws.send(String.fromCharCode(0x61 + push_id)); // 'a' ~ 'i'
+			ws.send(String.fromCharCode(0x61 + Number(push_id))); // 'a' ~ 'i'
 	}
-}
-
-function find_push_id(x, y)
-{
-	var cx, cy, push_id;
-
-	if((x < 0) || (x >= BOX_WIDTH * 3))
-		return 9;
-
-	if((y < 0) || (y >= BOX_WIDTH * 3))
-		return 9;
-
-	push_id = parseInt(x / BOX_WIDTH);
-	push_id += 3 * parseInt(y / BOX_WIDTH);
-
-	cx = BOX_WIDTH * (push_id % 3) + BOX_WIDTH / 2;
-	cy = BOX_HEIGHT * parseInt(push_id / 3) + BOX_HEIGHT / 2;
-
-	if(Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) < PUSH_RADIUS)
-		return push_id;
-	else
-		return 9;
+	
 }
 function mouse_down(event)
 {
 	var debug = document.getElementById("debug");
-	var x, y, push_id;
 
 	//debug.innerHTML = "";
-
+	var push_id = event.target.id;	
+	
 	if(event.changedTouches)
 	{
 		for(var touch_id = 0; touch_id < event.changedTouches.length; touch_id++)
 		{
 			var touch = event.changedTouches[touch_id];
 
-			x = touch.pageX - touch.target.offsetLeft;
-			y = touch.pageY - touch.target.offsetTop;
-
-			push_id = find_push_id(x, y);
-
-			if(push_id < 9)
+			if(push_id < push_length)
 			{
 				var push = push_info[push_id];
 
@@ -210,12 +189,7 @@ function mouse_down(event)
 	}
 	else
 	{
-		x = event.offsetX;
-		y = event.offsetY;
-
-		push_id = find_push_id(x, y);
-
-		if(push_id < 9)
+		if(push_id < push_length)
 		{
 			update_push(push_id, true);
 			//debug.innerHTML += (push_id + " ");
@@ -237,13 +211,13 @@ function mouse_up(event)
 		{
 			var touch = event.changedTouches[touch_id];
 
-			for(var push_id = 0; push_id < 9; push_id++)
+			for(var push_id = 0; push_id < push_length; push_id++)
 			{
 				if(touch.identifier == push_info[push_id].identifier)
 					break;
 			}
 
-			if(push_id < 9)
+			if(push_id < push_length)
 			{
 				update_push(push_id, false);
 				//debug.innerHTML += ("-" + push_id + "/" + touch.identifier + " ");
@@ -252,7 +226,7 @@ function mouse_up(event)
 	}
 	else
 	{
-		for(var push_id = 0; push_id < 9; push_id++)
+		for(var push_id = 0; push_id < push_length; push_id++)
 		{
 			if(push_info[push_id].state)
 			{
@@ -274,12 +248,18 @@ window.onload = init;
 
 <body>
 
-<p>
-<h1>Web Remote Control / Push</h1>
-</p>
+<h1><?php echo $wrp_title?></h1>
 
-<canvas id="remote"></canvas><br>
-
+<br /><br />
+<div id="remote">
+<?php
+	for ($i=0; $i<$push_text_len; $i++)
+	{
+		echo "<div class='circle_button' id='" . (string) $i . "'>" . $push_text[$i] . "</div>";
+	}
+?>
+</div>
+<br /><br />
 <h2>WebSocket <font id="ws_state" color="gray">CLOSED</font></h2>
 <button id="bt_connect" type="button" onclick="connect_onclick();">Connect</button>
 <span id="debug"></span>

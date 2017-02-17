@@ -19,18 +19,25 @@ if(!_SERVER("HTTP_REFERER"))
 
 	return;
 }
-
+$wsm_title         = _POST("wsm_title");
 $wsm_width         = _POST("wsm_width");
 $wsm_height        = _POST("wsm_height");
+$wrp_title         = _POST("wrp_title");
 $wrp_width         = _POST("wrp_width");
+$wrp_but_name      = substr(_POST("wrp_but_name_all"), 0, -1);
+$wrs_title         = _POST("wrs_title");
 $wrs_width         = _POST("wrs_width");
 $wrs_length        = _POST("wrs_length");
 $wrs_value_min     = _POST("wrs_value_min");
 $wrs_value_max     = _POST("wrs_value_max");
 
+envu_update($envu, "wsm_title", $wsm_title);
 envu_update($envu, "wsm_width", $wsm_width);
 envu_update($envu, "wsm_height", $wsm_height);
+envu_update($envu, "wrp_title", $wrp_title);
 envu_update($envu, "wrp_width", $wrp_width);
+envu_update($envu, "wrp_but_name", $wrp_but_name);
+envu_update($envu, "wrs_title", $wrs_title);
 envu_update($envu, "wrs_width", $wrs_width);
 envu_update($envu, "wrs_length", $wrs_length);
 envu_update($envu, "wrs_value_min", $wrs_value_min);
