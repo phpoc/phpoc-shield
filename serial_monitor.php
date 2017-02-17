@@ -2,6 +2,8 @@
 include_once "config.php";
 include_once "/lib/sc_envu.php";
 $envu = envu_read("nm0", NM0_ENVU_SIZE, NM0_ENVU_OFFSET);
+if(!($wsm_title = envu_find($envu, "wsm_title")))
+	$wsm_title = "Web Serial Monitor";
 if(!($wsm_width = envu_find($envu, "wsm_width")))
 	$wsm_width = "400";
 if(!($wsm_height = envu_find($envu, "wsm_height")))
@@ -104,7 +106,7 @@ function wsm_clear()
 <body>
 
 <p>
-<h1>Web Serial Monitor</h1>
+<h1><?php echo $wsm_title?></h1>
 </p>
 
 <textarea id="wsm_text" readonly="readonly"></textarea><br>
