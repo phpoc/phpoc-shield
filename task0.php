@@ -13,6 +13,66 @@ include_once "cmd_tcp.php";
 include_once "cmd_smtp.php";
 include_once "cmd_sys.php";
 
+function cmd_net01($pid, $cmd)
+{
+	switch($cmd[2])
+	{
+		case "mode":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get mode"));
+		case "speed":
+			return slave_write(ERR_OK, (string)pid_ioctl($pid, "get speed"));
+		case "hwaddr":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get hwaddr"));
+		case "ipaddr":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get ipaddr"));
+		case "netmask":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get netmask"));
+		case "gwaddr":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get gwaddr"));
+		case "nsaddr":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get nsaddr"));
+		case "ipaddr6":
+			if(count($cmd) > 3)
+				return slave_write(ERR_OK, pid_ioctl($pid, "get ipaddr6 %1", $cmd[3]));
+			else
+				return slave_write(ERR_OK, pid_ioctl($pid, "get ipaddr6 1"));
+		case "prefix6":
+			return slave_write(ERR_OK, (string)pid_ioctl($pid, "get prefix6"));
+		case "gwaddr6":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get gwaddr6"));
+		case "nsaddr6":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get nsaddr6"));
+		default:
+			return slave_write(ERR_CMD_ARG);
+	}
+}
+
+function cmd_net0($pid, $cmd)
+{
+	cmd_net01($pid, $cmd);
+}
+
+function cmd_net1($pid, $cmd)
+{
+	switch($cmd[2])
+	{
+		case "ch":
+			return slave_write(ERR_OK, (string)pid_ioctl($pid, "get ch"));
+		case "ssid":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get ssid"));
+		case "rssi":
+			return slave_write(ERR_OK, (string)pid_ioctl($pid, "get rssi"));
+		case "rsna":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get rsna"));
+		case "akm":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get akm"));
+		case "cipher":
+			return slave_write(ERR_OK, pid_ioctl($pid, "get cipher"));
+		default:
+			return cmd_net01($pid, $cmd);
+	}
+}
+
 function cmd_net($id, $cmd)
 {
 	if(count($cmd) < 3)
@@ -24,65 +84,36 @@ function cmd_net($id, $cmd)
 	if($id == 0)
 	{
 		if((int)ini_get("init_net0"))
+		{
 			$pid = pid_open("/mmap/net0");
+			cmd_net0($pid, $cmd);
+			pid_close($pid);
+		}
 		else
 		{
-			if($cmd[2] == "mode")
-				return slave_write(ERR_OK, "");
-			else
-			if($cmd[2] == "speed")
-				return slave_write(ERR_OK, "0");
-
-			$pid = pid_open("/mmap/net1");
+			switch($cmd[2])
+			{
+				case "mode":
+					slave_write(ERR_OK, "");
+					break;
+				case "speed":
+					slave_write(ERR_OK, "0");
+					break;
+				default:
+					$pid = pid_open("/mmap/net1");
+					cmd_net01($pid, $cmd);
+					pid_close($pid);
+					break;
+					
+			}
 		}
 	}
 	else
-		$pid = pid_open("/mmap/net1");
-
-	switch($cmd[2])
 	{
-		case "mode":
-			slave_write(ERR_OK, pid_ioctl($pid, "get mode"));
-			break;
-		case "speed":
-			slave_write(ERR_OK, (string)pid_ioctl($pid, "get speed"));
-			break;
-		case "hwaddr":
-			slave_write(ERR_OK, pid_ioctl($pid, "get hwaddr"));
-			break;
-		case "ipaddr":
-			slave_write(ERR_OK, pid_ioctl($pid, "get ipaddr"));
-			break;
-		case "netmask":
-			slave_write(ERR_OK, pid_ioctl($pid, "get netmask"));
-			break;
-		case "gwaddr":
-			slave_write(ERR_OK, pid_ioctl($pid, "get gwaddr"));
-			break;
-		case "nsaddr":
-			slave_write(ERR_OK, pid_ioctl($pid, "get nsaddr"));
-			break;
-		case "ipaddr6":
-			if(count($cmd) > 3)
-				slave_write(ERR_OK, pid_ioctl($pid, "get ipaddr6 %1", $cmd[3]));
-			else
-				slave_write(ERR_OK, pid_ioctl($pid, "get ipaddr6 1"));
-			break;
-		case "prefix6":
-			slave_write(ERR_OK, (string)pid_ioctl($pid, "get prefix6"));
-			break;
-		case "gwaddr6":
-			slave_write(ERR_OK, pid_ioctl($pid, "get gwaddr6"));
-			break;
-		case "nsaddr6":
-			slave_write(ERR_OK, pid_ioctl($pid, "get nsaddr6"));
-			break;
-		default:
-			slave_write(ERR_CMD_ARG);
-			break;
+		$pid = pid_open("/mmap/net1");
+		cmd_net1($pid, $cmd);
+		pid_close($pid);
 	}
-
-	pid_close($pid);
 }
 
 function cmd_tcpn($cmd)
@@ -115,7 +146,7 @@ function cmd_tcpn($cmd)
 		slave_write(ERR_CMD_UND);
 }
 
-echo "PHPoC Shield for Arduino / P4S-348\r\n";
+echo "PHPoC Shield for Arduino / ", system("uname -i"), "\r\n";
 
 $pid_uio0 = pid_open("/mmap/uio0");
 pid_ioctl($pid_uio0, "set 30 mode led_net1_act");

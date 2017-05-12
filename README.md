@@ -10,5 +10,3 @@ PHPoC source codes to use [PHPoC (WiFi) Shield for Arduino](http://www.phpoc.com
 ## References
 * [PHPoC Shield for Arduino](http://www.phpoc.com/support/manual/p4s-348_user_manual/)
 * [PHPoC WiFi Shield for Arduino](http://www.phpoc.com/support/manual/p4s-347_user_manual/)
-
-PHPoC Shield 15

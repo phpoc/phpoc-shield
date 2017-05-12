@@ -142,6 +142,29 @@ function cmd_date($cmd)
 		return slave_write(ERR_OK, date($sys_date_format));
 }
 
+function cmd_pkg($cmd)
+{
+	if(count($cmd) < 3)
+		return slave_write(ERR_CMD_ARG);
+
+	$pkg_info = explode(",", PHPOC_PKG_INFO);
+
+	if(count($pkg_info) < 3)
+		return slave_write(ERR_CMD_ARG);
+
+	switch($cmd[2])
+	{
+		case "name":
+			return slave_write(ERR_OK, ltrim(rtrim($pkg_info[0])));
+		case "ver":
+			return slave_write(ERR_OK, ltrim(rtrim($pkg_info[1])));
+		case "list":
+			return slave_write(ERR_OK, ltrim(rtrim($pkg_info[2])));
+		default:
+			return slave_write(ERR_CMD_ARG);
+	}
+}
+
 function cmd_sys($cmd)
 {
 	if(count($cmd) < 2)
@@ -159,6 +182,10 @@ function cmd_sys($cmd)
 			return cmd_rtc($cmd);
 		case "date":
 			return cmd_date($cmd);
+		//case "info":
+		//	return cmd_info($cmd);
+		case "pkg":
+			return cmd_pkg($cmd);
 		default:
 			return slave_write(ERR_CMD_ARG);
 	}

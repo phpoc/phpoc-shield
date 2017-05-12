@@ -8,7 +8,7 @@ function is_printable($ssid)
 	for($i = 0; $i < $ssid_len; $i++)
 	{
 		$code = bin2int($ssid, $i, 1);
-		if(($code < 0x20) || ($code > 0x7e))
+		if($code == 0x00)
 			return false;
 	}
 
@@ -17,8 +17,7 @@ function is_printable($ssid)
 
 $pid = pid_open("/mmap/net1");
 
-pid_ioctl($pid, "scan qsize 32");
-
+pid_ioctl($pid, "scan qsize 64");
 
 pid_ioctl($pid, "scan start");
 while(pid_ioctl($pid, "scan state"))
