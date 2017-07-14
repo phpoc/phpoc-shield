@@ -163,12 +163,6 @@ $shared_key		= substr($shared_key_env, 0, (int)$shared_key_pos);
 			phpoc_setup.hide_key.disabled = "";	
 
 			chkChannel();			
-		}
-		
-		if('<?php echo $shared_key;?>' == "")
-		{
-			phpoc_setup.shared_key.disabled = "true";
-			phpoc_setup.hide_key.disabled = "true";	
 		}		
 	}
 	

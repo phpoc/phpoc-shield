@@ -62,22 +62,10 @@ while(pid_ioctl($pid, "scan state"))
 	</style>
 	<script type="text/javascript">
 
-	function select(ssid, ssid_raw, security)
+	function select(ssid, ssid_raw)
 	{
 		window.opener.parent.document.phpoc_setup.ssid.value = ssid;
 		window.opener.parent.document.phpoc_setup.ssid_raw.value = ssid_raw;
-		
-		if (security == "None")
-		{
-			window.opener.parent.document.phpoc_setup.shared_key.value = "";
-			window.opener.parent.document.phpoc_setup.shared_key.disabled = true;
-			window.opener.parent.document.phpoc_setup.hide_key.disabled = true;
-		}
-		else
-		{
-			window.opener.parent.document.phpoc_setup.shared_key.disabled = false;
-			window.opener.parent.document.phpoc_setup.hide_key.disabled = false;
-		}	
 		window.close();
 	}
 	
@@ -280,7 +268,7 @@ while(pid_ioctl($pid, "scan state"))
 				<td width="170px" class="theader"><?php echo $ssid;?></td>	
 				<td><?php echo $security;?></td>
 				<td><?php echo "-",$rssi,"dBm";?></td>
-				<td align="center"><button type="button" onclick="select('<?php echo $ssid?>', '<?php echo $ssid_raw?>', '<?php echo $security?>')";>Select</button></td>
+				<td align="center"><button type="button" onclick="select('<?php echo $ssid?>', '<?php echo $ssid_raw?>')";>Select</button></td>
 			</tr>
 		<?php	
 

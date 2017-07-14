@@ -273,7 +273,8 @@ pid_close($pid_net1);
 		</table>
 		<?php 
 		}
-		?>
+		?>		
+		<br /><br /><br />
 	</center>	
 	</form>
 	<div id="footer">

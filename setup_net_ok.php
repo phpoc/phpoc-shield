@@ -44,13 +44,13 @@ $ip_type      = (int) _POST("ip_type");
 $ip6_opt      = (int) _POST("ip6_opt");   // Enable 1 - Disbale 0 (IPv6)
 $shared_key   = _POST("shared_key");
 $ssid   	  = hex2bin(_POST("ssid_raw"));
-// $ssid   	  = bin2hex(_POST("ssid"));
-// $ssid_raw     = _POST("ssid_raw");
+$ssid   	  = bin2hex(_POST("ssid"));
+$ssid_raw     = _POST("ssid_raw");
 
-// if ( $ssid != $ssid_raw )
-	// $ssid    = hex2bin($ssid);
-// else
-	// $ssid    = hex2bin($ssid_raw);
+if ( $ssid != $ssid_raw )
+	$ssid    = hex2bin($ssid);
+else
+	$ssid    = hex2bin($ssid_raw);
 
 $envs = envs_read();
 
